@@ -1,18 +1,35 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    <SideBar/>
+    <Dashboard/>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+import SideBar from '@/components/SideBar.vue'
+import Dashboard from '@/components/Dashboard/Index.vue'
 
 export default defineComponent({
   name: 'HomeView',
   components: {
-    HelloWorld,
+    SideBar,
+    Dashboard,
   },
 });
 </script>
+
+<style scoped>
+.home {
+  background-color: #E5E5E5;
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  min-height: 100vh;
+}
+
+@media all and (max-width: 575px) {
+  .home {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
