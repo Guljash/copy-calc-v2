@@ -8,7 +8,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import SideBar from '@/components/SideBar.vue'
-import Dashboard from '@/components/Dashboard/Index.vue'
+import Dashboard from '@/components/Dashboard/Dashboard.vue'
 
 export default defineComponent({
   name: 'HomeView',
@@ -25,6 +25,7 @@ export default defineComponent({
   display: grid;
   grid-template-columns: 140px 1fr;
   min-height: 100vh;
+  min-width: 100vw;
 }
 
 @media all and (max-width: 575px) {

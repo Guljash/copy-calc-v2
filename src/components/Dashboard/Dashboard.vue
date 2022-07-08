@@ -39,13 +39,14 @@ export default defineComponent({
 
   @media all and (max-width: 1250px) {
     .wrapper {
-      padding: 20px;
+      padding: 0 20px 20px 20px;
+      box-sizing: border-box;
       grid-template-areas:
     "calc"
     "status"
     "events";
       grid-template-columns: 1fr;
-      grid-row-gap: 30px;
+      grid-template-rows: repeat(auto-fill, minmax(750px, 100vh));
     }
   }
 </style>

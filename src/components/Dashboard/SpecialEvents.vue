@@ -16,5 +16,6 @@ export default defineComponent({
     box-shadow: 0 1px 2px rgba(18, 53, 80, 0.24);
     border-radius: 1.5em;
     grid-area: events;
+    min-height: 400px;
   }
 </style>
