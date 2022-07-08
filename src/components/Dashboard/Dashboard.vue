@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import Calculator from './Calculator.vue'
+import Calculator from './Calculator/Calculator.vue'
 import SpecialEvents from './SpecialEvents.vue'
 import StatusArea from './StatusArea.vue'
 import { defineComponent } from 'vue';
@@ -22,6 +22,7 @@ export default defineComponent({
 
 <style scoped>
   .wrapper {
+    background-color: #E5E5E5;
     padding: 10px;
     align-self: center;
     justify-self: center;
@@ -43,7 +44,6 @@ export default defineComponent({
     "calc"
     "status"
     "events";
-      grid-template-rows: calc(100vh - 40px) 50vh 50vh;
       grid-template-columns: 1fr;
       grid-row-gap: 30px;
     }
