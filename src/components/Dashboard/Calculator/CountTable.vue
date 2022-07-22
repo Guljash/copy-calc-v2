@@ -11,11 +11,11 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(el, i) of temp" :key="i">
-          <td>101</td>
-          <td>50</td>
-          <td>150 &#8381;</td>
-          <td>на чек 40%</td>
+        <tr v-for="(sku, i) of skuItems" :key="i" @click="$emit('sku-clicked', sku.id)">
+          <td :class="sku.active ? 'active' : ''">{{sku.id}}</td>
+          <td>{{sku.multiplier}}</td>
+          <td>{{sku.count}} &#8381;</td>
+          <td>{{sku.discount ? `${sku.discount}%` : ''}}</td>
         </tr>
         </tbody>
       </table>
@@ -23,15 +23,17 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "TopBtns",
-  data() {
-    return {
-      temp:[1,2,3,4,5,6,7,8,9,0,3,2,31,3,1,3],
-    }
-  }
+<script setup lang="ts">
+import {defineProps, withDefaults} from 'vue';
+import ISku from '@/types/ISku'
+
+interface IProps {
+  skuItems?: ISku[],
 }
+const props = withDefaults(defineProps<IProps>(), {
+  skuItems: () => [],
+})
+
 </script>
 
 <style scoped>
@@ -83,6 +85,10 @@ export default {
   width: 60px;
   background-color: #A3ADB9;
   color: #fff;
+}
+
+.active {
+  background-color: black !important;
 }
 
 

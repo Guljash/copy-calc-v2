@@ -19,7 +19,6 @@ export default defineComponent({
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 400px;
   }
   .status-wrapper p {
     font-size: 30px;
