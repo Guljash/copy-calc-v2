@@ -8,17 +8,17 @@
       </div>
       <div class="count-total">
         <p>ИТОГО:</p>
-        <p>16 459 &#8381;</p>
+        <p>{{ countSum }} &#8381;</p>
       </div>
       <div class="count-input">
-        <input @keypress.enter="addSku"
-               @keypress.+.prevent="addMultiplier()"
+        <input @keypress.enter="addSku(inputModel)"
+               @keypress.+.prevent="addMultiplier(parseInt(inputModel))"
                v-model="inputModel"
                type="text"
         >
         <div class="btns">
-          <button class="vc" @click="addSku">Артикул</button>
-          <button class="count active" @click="addMultiplier()">Количество</button>
+          <button class="vc" @click="addSku(inputModel)">Артикул</button>
+          <button class="count active" @click="addMultiplier(parseInt(inputModel))">Количество</button>
         </div>
       </div>
     </div>
@@ -26,16 +26,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import {ref, watch, computed, reactive} from 'vue';
 import TopBtns from "@/components/Dashboard/Calculator/TopBtns.vue";
 import CountTable from "@/components/Dashboard/Calculator/CountTable.vue";
 import ISku from "@/types/ISku";
+import db from "@/db/db"
 
-const skuItems = ref<ISku[]>([])
+const dbMap = db.map(sku => sku.id)
+const skuItems = reactive<ISku[]>([])
 const inputModel = ref<string | null>()
+const countSum = computed(() => {
+  if (!skuItems.length) {
+    return 0
+  }
+  return skuItems.reduce((acc, sku) => acc + sku.count * sku.multiplier, 0)
+})
 
 const refreshSkuActive = (id:number): void => {
-  skuItems.value.forEach(sku => sku.id === id ? sku.active = true : sku.active = false)
+  skuItems.forEach(sku => sku.id === id ? sku.active = true : sku.active = false)
 }
 
 watch(inputModel, (val) => {
@@ -43,28 +51,35 @@ watch(inputModel, (val) => {
     return
   }
 
-  const validatedArray = val.match(/[0-9]*[.,]?[0-9]*/)
+  const regExp = /[0-9]*[.,]?[0-9]*/
+  const validatedArray = val.match(regExp)
 
   inputModel.value = Array.isArray(validatedArray) ? validatedArray[0].replace('.', ',') : ''
 })
 
-const addSku = (): void => {
-  if (!inputModel.value) {
+const addSku = (skuString:string): void => {
+  if (!skuString) {
     return
   }
   let dynamicMultiplier = 1
-  let dynamicSku:number = parseInt(inputModel.value, 10)
-  const alreadyPushedSku = skuItems.value.find(sku => sku.id === dynamicSku)
+  let dynamicSku:number = parseInt(skuString, 10)
+  const alreadyPushedSku = skuItems.find(sku => sku.id === dynamicSku)
 
-  if (inputModel.value.includes(',')) {
-    const [sku, multiplier] = inputModel.value.split(',')
+  if (skuString.includes(',')) {
+    const [sku, multiplier] = skuString.split(',')
 
     dynamicMultiplier = Number(multiplier)
     dynamicSku = Number(sku)
   }
 
   if (!alreadyPushedSku) {
-    skuItems.value.push({id: dynamicSku, multiplier: dynamicMultiplier, count: 10, discount: 0, active: true})
+      const index = dbMap.findIndex(i => i === dynamicSku)
+      if (index === -1) {
+        return;
+      }
+
+      skuItems.push(db[index])
+    
   } else {
     addMultiplier(alreadyPushedSku.multiplier + dynamicMultiplier)
   }
@@ -73,19 +88,12 @@ const addSku = (): void => {
   inputModel.value = ''
 }
 
-const addMultiplier = (multiplier:number | null = null): void => {
-  if (!inputModel.value) {
+const addMultiplier = (multiplier:number): void => {
+  if (!multiplier) {
     return
   }
 
-  const validMultiplier:number = multiplier ?? parseInt(inputModel.value, 10)
-
-  if (isNaN(validMultiplier)) {
-    inputModel.value = ''
-    return
-  }
-
-  skuItems.value.forEach(sku => sku.active ? sku.multiplier = validMultiplier : '')
+  skuItems.forEach(sku => sku.active ? sku.multiplier = multiplier : '')
   inputModel.value = ''
 }
 </script>
