@@ -12,7 +12,7 @@ const useMainCalculation = () => {
             return 0
         }
 
-        return Math.round(skuItems.reduce((acc, sku) => acc + sku.count * sku.multiplier, 0) * 2 / 2)
+        return Math.round(skuItems.reduce((acc, sku) => acc + sku.count * (sku.multiplier ?? 1), 0) * 2 / 2)
     })
 
     const refreshSkuActive = (id:number): void => {
@@ -30,8 +30,8 @@ const useMainCalculation = () => {
         if (skuString.includes(',')) {
             const [sku, multiplier] = skuString.split(',')
 
-            dynamicMultiplier = Number(multiplier)
-            dynamicSku = Number(sku)
+            dynamicMultiplier = parseInt(multiplier)
+            dynamicSku = parseInt(sku)
         }
 
         if (!alreadyPushedSku) {
@@ -41,20 +41,39 @@ const useMainCalculation = () => {
             }
 
             skuItems.push({...db[index]})
-
+            refreshSkuActive(dynamicSku)
+            addMultiplier(dynamicMultiplier)
         } else {
-            addMultiplier(alreadyPushedSku.multiplier + dynamicMultiplier)
+            refreshSkuActive(dynamicSku)
+            addMultiplier((alreadyPushedSku.multiplier ?? 1) + dynamicMultiplier)
         }
-
-        refreshSkuActive(dynamicSku)
     }
 
     const addMultiplier = (multiplier:number): void => {
-        if (!multiplier) {
+        const activeSku = skuItems.find(sku => sku.active)
+
+        if (!multiplier || !activeSku) {
             return
         }
 
-        skuItems.forEach(sku => sku.active ? sku.multiplier = multiplier : '')
+        if (activeSku.steps) {
+            activeSku.steps.stepsData.multiplier.push(Infinity)
+
+            const countIndex = activeSku.steps.stepsData.multiplier.findIndex(el => multiplier < el)
+            const value = activeSku.steps.stepsData.value[countIndex]
+
+            switch (activeSku.steps.method) {
+                case 'count':
+                    //todo сделать отдельную функцию прямого изменения цены
+                    activeSku.count = value
+                    break
+                case 'discount':
+                    addDiscount(String(value))
+                    break
+            }
+        }
+
+        activeSku.multiplier = multiplier
     }
 
     const addDiscount = (discount:TInput, isDiscountForAll = false): void => {
@@ -76,8 +95,8 @@ const useMainCalculation = () => {
     }
 
     const deleteSku = () => {
-        const currentSku = skuItems.find(sku => sku.active)
-        const index = skuItems.findIndex(sku => sku.id === currentSku?.id)
+        const activeSku = skuItems.find(sku => sku.active)
+        const index = skuItems.findIndex(sku => sku.id === activeSku?.id)
 
         skuItems.splice(index, 1)
     }

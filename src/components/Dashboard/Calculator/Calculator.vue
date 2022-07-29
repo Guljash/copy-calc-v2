@@ -13,7 +13,7 @@
       <div class="count-input">
         <input @keypress.enter="addSku(inputModel)"
                @keypress.+="addMultiplier(parseInt(inputModel))"
-               @keydown.delete="deleteSku"
+               @keydown.-="deleteSku"
                v-model="inputModel"
                type="text"
         >
