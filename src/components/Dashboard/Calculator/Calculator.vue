@@ -3,7 +3,7 @@
     <div class="calc">
       <p>Калькулятор</p>
       <div class="count-form">
-        <TopBtns/>
+        <TopBtns @discount-click="onDiscountClick"/>
         <CountTable @sku-clicked="refreshSkuActive" :skuItems="skuItems"/>
       </div>
       <div class="count-total">
@@ -12,7 +12,8 @@
       </div>
       <div class="count-input">
         <input @keypress.enter="addSku(inputModel)"
-               @keypress.+.prevent="addMultiplier(parseInt(inputModel))"
+               @keypress.+="addMultiplier(parseInt(inputModel))"
+               @keydown.delete="deleteSku"
                v-model="inputModel"
                type="text"
         >
@@ -26,25 +27,13 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch, computed, reactive} from 'vue';
+import {ref, watch, onMounted, onBeforeUnmount} from 'vue';
 import TopBtns from "@/components/Dashboard/Calculator/TopBtns.vue";
 import CountTable from "@/components/Dashboard/Calculator/CountTable.vue";
-import ISku from "@/types/ISku";
-import db from "@/db/db"
+import useMainCalculation from "@/components/Dashboard/Calculator/use/useMainCalculation";
 
-const dbMap = db.map(sku => sku.id)
-const skuItems = reactive<ISku[]>([])
 const inputModel = ref<string | null>()
-const countSum = computed(() => {
-  if (!skuItems.length) {
-    return 0
-  }
-  return skuItems.reduce((acc, sku) => acc + sku.count * sku.multiplier, 0)
-})
-
-const refreshSkuActive = (id:number): void => {
-  skuItems.forEach(sku => sku.id === id ? sku.active = true : sku.active = false)
-}
+const {addSku, addMultiplier, addDiscount, deleteSku, refreshSkuActive, countSum, skuItems} = useMainCalculation()
 
 watch(inputModel, (val) => {
   if (!val) {
@@ -57,45 +46,14 @@ watch(inputModel, (val) => {
   inputModel.value = Array.isArray(validatedArray) ? validatedArray[0].replace('.', ',') : ''
 })
 
-const addSku = (skuString:string): void => {
-  if (!skuString) {
-    return
-  }
-  let dynamicMultiplier = 1
-  let dynamicSku:number = parseInt(skuString, 10)
-  const alreadyPushedSku = skuItems.find(sku => sku.id === dynamicSku)
+watch(skuItems, () => {
+    inputModel.value = ''
+})
 
-  if (skuString.includes(',')) {
-    const [sku, multiplier] = skuString.split(',')
-
-    dynamicMultiplier = Number(multiplier)
-    dynamicSku = Number(sku)
-  }
-
-  if (!alreadyPushedSku) {
-      const index = dbMap.findIndex(i => i === dynamicSku)
-      if (index === -1) {
-        return;
-      }
-
-      skuItems.push(db[index])
-    
-  } else {
-    addMultiplier(alreadyPushedSku.multiplier + dynamicMultiplier)
-  }
-
-  refreshSkuActive(dynamicSku)
-  inputModel.value = ''
+const onDiscountClick = (isDiscountForAll: boolean) => {
+    addDiscount(inputModel.value, isDiscountForAll)
 }
 
-const addMultiplier = (multiplier:number): void => {
-  if (!multiplier) {
-    return
-  }
-
-  skuItems.forEach(sku => sku.active ? sku.multiplier = multiplier : '')
-  inputModel.value = ''
-}
 </script>
 
 <style scoped>

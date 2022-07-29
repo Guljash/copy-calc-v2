@@ -1,14 +1,19 @@
 <template>
   <div class="top_buttons">
-    <button>Скидка по позиции</button>
-    <button>Скидка на чек</button>
+    <button @click="onBtnClick(false)">Скидка по позиции</button>
+    <button @click="onBtnClick(true)">Скидка на чек</button>
   </div>
 </template>
 
-<script>
-export default {
-  name: "TopBtns"
+<script setup lang="ts">
+
+import { defineEmits } from 'vue'
+const emit = defineEmits(['discount-click'])
+
+const onBtnClick = (isDiscountForAll: boolean) => {
+    emit('discount-click', isDiscountForAll)
 }
+
 </script>
 
 <style scoped>
