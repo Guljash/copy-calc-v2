@@ -2,9 +2,13 @@ import db from "@/db/db";
 import {computed, reactive} from "vue";
 import ISku from "@/types/ISku";
 import TInput from "@/types/TInput";
+import IUseMainCalculation from "./types/IUseMainCalculation";
 
-const useMainCalculation = () => {
-    const skuItems = reactive<ISku[]>([])
+const skuItems = reactive<ISku[]>([])
+let discountForAll = 0
+
+const useMainCalculation = (): IUseMainCalculation => {
+
     const dbMap = db.map(sku => sku.id)
 
     const countSum = computed(() => {
@@ -34,19 +38,34 @@ const useMainCalculation = () => {
             dynamicSku = parseInt(sku)
         }
 
-        if (!alreadyPushedSku) {
-            const index = dbMap.findIndex(i => i === dynamicSku)
-            if (index === -1) {
-                return;
-            }
-
-            skuItems.push({...db[index]})
-            refreshSkuActive(dynamicSku)
-            addMultiplier(dynamicMultiplier)
-        } else {
+        if (alreadyPushedSku) {
             refreshSkuActive(dynamicSku)
             addMultiplier((alreadyPushedSku.multiplier ?? 1) + dynamicMultiplier)
+
+            return
         }
+
+        const index = dbMap.findIndex(i => i === dynamicSku)
+
+        if (index === -1) {
+            return
+        }
+
+        skuItems.push({...db[index]})
+        refreshSkuActive(dynamicSku)
+        addMultiplier(dynamicMultiplier)
+    }
+
+    const getStepValue = (skuItem: ISku, multiplier = 1): number => {
+        if (!skuItem.steps) {
+            return skuItem.count
+        }
+
+        skuItem.steps.stepsData.multiplier.push(Infinity)
+
+        const countIndex = skuItem.steps.stepsData.multiplier.findIndex(el => multiplier < el)
+
+        return skuItem.steps.stepsData.value[countIndex]
     }
 
     const addMultiplier = (multiplier:number): void => {
@@ -57,10 +76,7 @@ const useMainCalculation = () => {
         }
 
         if (activeSku.steps) {
-            activeSku.steps.stepsData.multiplier.push(Infinity)
-
-            const countIndex = activeSku.steps.stepsData.multiplier.findIndex(el => multiplier < el)
-            const value = activeSku.steps.stepsData.value[countIndex]
+            const value = getStepValue(JSON.parse(JSON.stringify(activeSku)), multiplier)
 
             switch (activeSku.steps.method) {
                 case 'count':
@@ -72,8 +88,8 @@ const useMainCalculation = () => {
                     break
             }
         }
-
         activeSku.multiplier = multiplier
+        addDiscount(String(activeSku.discount))
     }
 
     const addDiscount = (discount:TInput, isDiscountForAll = false): void => {
@@ -82,19 +98,23 @@ const useMainCalculation = () => {
         }
 
         if (isDiscountForAll) {
-            skuItems.forEach(sku => sku.discount += parseInt(discount))
+            discountForAll = parseInt(discount)
+            skuItems.forEach(sku => sku.discount += discountForAll)
         } else {
-            skuItems.forEach(sku => sku.active ? sku.discount = parseInt(discount) : '')
+            skuItems.forEach(sku => sku.active ? sku.discount = parseInt(discount) + discountForAll : '')
         }
 
         skuItems.forEach(sku => {
             const index = dbMap.findIndex(i => i === sku.id)
+            const count = sku.steps?.method === 'count' ?
+                getStepValue(JSON.parse(JSON.stringify(db[index])), sku.multiplier) :
+                db[index].count
 
-            sku.count = db[index].count * (1 - (sku.discount / 100))
+            sku.count = count * (1 - (sku.discount / 100))
         })
     }
 
-    const deleteSku = () => {
+    const deleteSku = (): void => {
         const activeSku = skuItems.find(sku => sku.active)
         const index = skuItems.findIndex(sku => sku.id === activeSku?.id)
 

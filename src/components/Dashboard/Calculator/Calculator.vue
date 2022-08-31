@@ -18,8 +18,8 @@
                type="text"
         >
         <div class="btns">
-          <button class="vc" @click="addSku(inputModel)">Артикул</button>
-          <button class="count active" @click="addMultiplier(parseInt(inputModel))">Количество</button>
+          <button class="vc" :class="{'active': skuActiveInput}" @click="addSku(inputModel)">{{skuActiveInput ? 'Артикул' : ''}}</button>
+          <button class="count" :class="{'active': countActiveInput}" @click="addMultiplier(parseInt(inputModel))">{{countActiveInput ? 'Количество' : ''}}</button>
         </div>
       </div>
     </div>
@@ -27,16 +27,22 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch, onMounted, onBeforeUnmount} from 'vue';
+import {ref, watch} from 'vue';
 import TopBtns from "@/components/Dashboard/Calculator/TopBtns.vue";
 import CountTable from "@/components/Dashboard/Calculator/CountTable.vue";
 import useMainCalculation from "@/components/Dashboard/Calculator/use/useMainCalculation";
+import db from "@/db/db";
 
 const inputModel = ref<string | null>()
 const {addSku, addMultiplier, addDiscount, deleteSku, refreshSkuActive, countSum, skuItems} = useMainCalculation()
+const dbMap = db.map(sku => sku.id)
+const skuActiveInput = ref<boolean>(false)
+const countActiveInput = ref<boolean>(false)
 
 watch(inputModel, (val) => {
   if (!val) {
+    countActiveInput.value = false
+    skuActiveInput.value = false
     return
   }
 
@@ -44,6 +50,9 @@ watch(inputModel, (val) => {
   const validatedArray = val.match(regExp)
 
   inputModel.value = Array.isArray(validatedArray) ? validatedArray[0].replace('.', ',') : ''
+
+  countActiveInput.value = !!inputModel.value && !dbMap.includes(+inputModel.value);
+  skuActiveInput.value = dbMap.includes(+inputModel.value)
 })
 
 watch(skuItems, () => {
@@ -137,14 +146,37 @@ const onDiscountClick = (isDiscountForAll: boolean) => {
     border-radius: 1.5em;
     padding: 5px 10px;
     text-align: center;
+    min-width: 40px;
+    max-width: 40px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    transition: min-width 0.2s ease-in-out;
+    overflow-x: hidden;
   }
 
   .count-input .count {
     margin-right: 10px;
   }
 
+  .count-input button:first-child {
+    background-image: url('~@/assets/sku.svg');
+  }
+
+  .count-input button:last-child {
+      background-image: url('~@/assets/count.svg');
+  }
+
+  .count-input button.active:first-child {
+    min-width: 70px;
+  }
+
+  .count-input button.active:last-child {
+    min-width: 90px;
+  }
+
   .count-input button.active {
     background-color: #327AB1;
+    background-image: none !important;
     color: #fff;
   }
 

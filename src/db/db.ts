@@ -6,7 +6,7 @@ const db: ISku[] = [
       stepsData: {multiplier: [10, 100, 1000], value: [10, 7, 5, 3]}}
   },
   {id: 801, count: 10, discount: 0, active: true,},
-  {id: 158, count: 36, discount: 50, active: true,},
+  {id: 158, count: 36, discount: 0, active: true,},
 ]
 
 export default db

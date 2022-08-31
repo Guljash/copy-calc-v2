@@ -14,18 +14,17 @@
       </div>
       <div>
         <div>справка</div>
-        <div>ночной режим</div>
+        <div @click="addDiscount('10', true)">ночной режим</div>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script lang="ts" setup>
+import useMainCalculation from "@/components/Dashboard/Calculator/use/useMainCalculation";
 
-export default defineComponent({
-  name: 'SideBar'
-})
+const {addDiscount} = useMainCalculation()
+
 </script>
 
 <style scoped>

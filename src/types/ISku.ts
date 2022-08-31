@@ -1,18 +1,18 @@
-interface ISku {
-    id: number,
-    multiplier?: number,
-    count: number,
-    discount: number,
-    active: boolean,
-    steps?: ISteps,
+type ISku = {
+    id: number
+    multiplier?: number
+    count: number
+    discount: number
+    active: boolean
+    steps?: ISteps
 }
 
-interface ISteps {
-    method: TValue,
+type ISteps = {
+    method: TMethod
     stepsData: { multiplier: number[], value: number[] }
 }
 
-type TValue = 'count' | 'discount'
+type TMethod = 'count' | 'discount'
 
 
 export default ISku
