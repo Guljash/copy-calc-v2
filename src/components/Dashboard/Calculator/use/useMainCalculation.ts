@@ -122,7 +122,7 @@ const useMainCalculation = (): IUseMainCalculation => {
     }
 
     return {
-        addSku, addMultiplier, addDiscount, deleteSku, refreshSkuActive, countSum, skuItems
+        addSku, addMultiplier, addDiscount, deleteSku, refreshSkuActive, countSum, skuItems, discountForAll
     }
 }
 

@@ -34,7 +34,7 @@ const onBtnClick = (isDiscountForAll: boolean) => {
 }
 
 .top_buttons button:hover {
-  background-color: #1563b1;
+  background-color: #205176;
 }
 
 .top_buttons button:first-child {

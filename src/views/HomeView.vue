@@ -1,22 +1,18 @@
 <template>
-  <div class="home">
+  <div class="home" :class="{'night-mode': isNightMode}">
     <SideBar/>
     <Dashboard/>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-import SideBar from '@/components/SideBar.vue'
+<script lang="ts" setup>
+import SideBar from '@/components/SideBar/SideBar.vue'
 import Dashboard from '@/components/Dashboard/Dashboard.vue'
+import useNightMode from "@/components/SideBar/use/useNightMode";
 
-export default defineComponent({
-  name: 'HomeView',
-  components: {
-    SideBar,
-    Dashboard,
-  },
-});
+const {isNightMode} = useNightMode()
+
+
 </script>
 
 <style scoped>
@@ -26,6 +22,11 @@ export default defineComponent({
   grid-template-columns: 140px 1fr;
   min-height: 100vh;
   min-width: 100vw;
+  transition: background-color 0.5s ease-in-out;
+}
+
+.home.night-mode {
+  background-color: #3C3C3C;
 }
 
 @media all and (max-width: 575px) {

@@ -25,6 +25,10 @@ export default defineComponent({
     line-height: 131.7%;
   }
 
+  .night-mode .status-wrapper p {
+    color: white;
+  }
+
   .status-pic {
     min-width: 430px;
     margin-top: 20px;

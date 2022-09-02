@@ -6,18 +6,11 @@
   </div>
 </template>
 
-<script>
+<script lang="ts" setup>
 import Calculator from './Calculator/Calculator.vue'
 import SpecialEvents from './SpecialEvents.vue'
 import StatusArea from './StatusArea.vue'
-import { defineComponent } from 'vue';
 
-export default defineComponent({
-  name: 'Dashboard',
-  components: {
-    Calculator, SpecialEvents, StatusArea
-  }
-})
 </script>
 
 <style scoped>
@@ -35,8 +28,12 @@ export default defineComponent({
     grid-column-gap: 40px;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr;
+    transition: background-color 0.5s ease-in-out;
   }
 
+  .night-mode .wrapper {
+    background-color: #3C3C3C;
+  }
   @media all and (max-width: 1250px) {
     .wrapper {
       padding: 0 20px 20px 20px;

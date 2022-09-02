@@ -10,6 +10,7 @@ type IUseMainCalculation = {
     refreshSkuActive: (id:number) => void
     countSum: ComputedRef<number>
     skuItems: ISku[]
+    discountForAll: number
 }
 
 export default IUseMainCalculation

@@ -86,6 +86,15 @@ const onDiscountClick = (isDiscountForAll: boolean) => {
     display: grid;
     grid-template-rows: 24px 510px 48px 48px;
     grid-row-gap: 20px;
+    transition: background-color 0.5s ease-in-out;
+  }
+
+  .night-mode .calc {
+    background-color: #1F1F1F;
+  }
+
+  .night-mode .calc p{
+    color: white;
   }
 
   .calc>*{

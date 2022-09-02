@@ -61,6 +61,15 @@ const props = withDefaults(defineProps<IProps>(), {
   background-color: #fff;
   position: sticky;
   top: 0;
+  transition: background-color 0.5s ease-in-out;
+}
+
+.night-mode .table-body-scroll thead{
+  background-color: #1F1F1F;
+}
+
+.night-mode .table-body-scroll thead{
+  color: white;
 }
 
 .table-body-scroll thead td:first-child {
