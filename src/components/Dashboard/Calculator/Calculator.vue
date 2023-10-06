@@ -18,8 +18,8 @@
                type="text"
         >
         <div class="btns">
-          <button class="vc" :class="{'active': skuActiveInput}" @click="addSku(inputModel)">{{skuActiveInput ? 'Артикул' : ''}}</button>
-          <button class="count" :class="{'active': countActiveInput}" @click="addMultiplier(parseInt(inputModel))">{{countActiveInput ? 'Количество' : ''}}</button>
+          <button class="vc" :class="{'active': isSkuActiveBtn}" @click="addSku(inputModel)">{{isSkuActiveBtn ? 'Артикул' : ''}}</button>
+          <button class="count" :class="{'active': isCountActiveBtn}" @click="addMultiplier(parseInt(inputModel))">{{isCountActiveBtn ? 'Количество' : ''}}</button>
         </div>
       </div>
     </div>
@@ -32,35 +32,39 @@ import TopBtns from "@/components/Dashboard/Calculator/TopBtns.vue";
 import CountTable from "@/components/Dashboard/Calculator/CountTable.vue";
 import useMainCalculation from "@/components/Dashboard/Calculator/use/useMainCalculation";
 import db from "@/db/db";
+import {get, set} from "@vueuse/core";
 
-const inputModel = ref<string | null>()
 const {addSku, addMultiplier, addDiscount, deleteSku, refreshSkuActive, countSum, skuItems} = useMainCalculation()
-const dbMap = db.map(sku => sku.id)
-const skuActiveInput = ref<boolean>(false)
-const countActiveInput = ref<boolean>(false)
+
+const skuIds = db.map(sku => sku.id)
+const isSkuActiveBtn = ref<boolean>(false)
+const isCountActiveBtn = ref<boolean>(false)
+const inputModel = ref('')
 
 watch(inputModel, (val) => {
   if (!val) {
-    countActiveInput.value = false
-    skuActiveInput.value = false
+    set(isCountActiveBtn, false)
+    set(isSkuActiveBtn, false)
     return
   }
 
+  /** На нампаде удобно набирать и точку, и запятную. Для это ставил тип инпута 'text' и вот эту проверку */
   const regExp = /[0-9]*[.,]?[0-9]*/
   const validatedArray = val.match(regExp)
 
-  inputModel.value = Array.isArray(validatedArray) ? validatedArray[0].replace('.', ',') : ''
+  set(inputModel, Array.isArray(validatedArray) ? validatedArray[0].replace('.', ',') : '')
 
-  countActiveInput.value = !!inputModel.value && !dbMap.includes(+inputModel.value);
-  skuActiveInput.value = dbMap.includes(+inputModel.value)
+  set(isCountActiveBtn, !!get(inputModel) && !skuIds.includes(parseInt(get(inputModel))))
+  set(isSkuActiveBtn, skuIds.includes(parseInt(get(inputModel))))
 })
 
 watch(skuItems, () => {
-    inputModel.value = ''
+    set(inputModel, '')
 })
 
 const onDiscountClick = (isDiscountForAll: boolean) => {
-    addDiscount(inputModel.value, isDiscountForAll)
+    /** А тут обратно меняем запятую на точку, чтобы парсер распознал дробное число */
+    addDiscount(parseFloat(get(inputModel).replace(',', '.')), isDiscountForAll)
 }
 
 </script>

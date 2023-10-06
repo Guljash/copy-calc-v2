@@ -1,6 +1,6 @@
-import ISku from "@/types/ISku"
+import {Sku} from "@/types"
 
-const db: ISku[] = [
+const db: Sku[] = [
   {id: 101, count: 10, discount: 0, active: true, steps: {
       method: 'count',
       stepsData: {multiplier: [10, 100, 1000], value: [10, 7, 5, 3]}}

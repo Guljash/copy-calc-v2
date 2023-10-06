@@ -1,35 +1,42 @@
 import db from "@/db/db";
-import {computed, reactive} from "vue";
-import ISku from "@/types/ISku";
-import TInput from "@/types/TInput";
-import IUseMainCalculation from "./types/IUseMainCalculation";
+import {computed, ComputedRef, reactive, ref} from "vue";
+import {Sku, SkuId} from "@/types";
+import {get, set} from "@vueuse/core";
 
-const skuItems = reactive<ISku[]>([])
+export interface UseMainCalculation {
+    addSku: (skuString: string) => void
+    addMultiplier: (multiplier: number) => void
+    addDiscount: (discount: number, isDiscountForAll?: boolean, isNeedToRewriteDiscountForAll?: boolean) => void
+    deleteSku: () => void
+    refreshSkuActive: (id: SkuId) => void
+    countSum: ComputedRef<number>
+    skuItems: Sku[]
+    discountForAll: number
+}
+
+const skuItems = reactive<Sku[]>([])
 let discountForAll = 0
 
-const useMainCalculation = (): IUseMainCalculation => {
+const useMainCalculation = (): UseMainCalculation => {
 
-    const dbMap = db.map(sku => sku.id)
+    const skuIds = db.map(sku => sku.id)
 
     const countSum = computed(() => {
-        if (!skuItems.length) {
-            return 0
-        }
-
-        return Math.round(skuItems.reduce((acc, sku) => acc + sku.count * (sku.multiplier ?? 1), 0) * 2 / 2)
+        return skuItems.length ? Math.round(skuItems.reduce((acc, sku) => acc + sku.count * (sku.multiplier ?? 1), 0) * 2 / 2) : 0
     })
 
-    const refreshSkuActive = (id:number): void => {
+    const refreshSkuActive = (id: SkuId): void => {
         skuItems.forEach(sku => sku.id === id ? sku.active = true : sku.active = false)
     }
 
-    const addSku = (skuString:string): void => {
+    const addSku = (skuString: string): void => {
         if (!skuString) {
             return
         }
+
         let dynamicMultiplier = 1
-        let dynamicSku:number = parseInt(skuString, 10)
-        const alreadyPushedSku = skuItems.find(sku => sku.id === dynamicSku)
+        let dynamicSku = parseInt(skuString, 10)
+        const isSkuAlreadyPushed = skuItems.find(sku => sku.id === dynamicSku)
 
         if (skuString.includes(',')) {
             const [sku, multiplier] = skuString.split(',')
@@ -38,14 +45,14 @@ const useMainCalculation = (): IUseMainCalculation => {
             dynamicSku = parseInt(sku)
         }
 
-        if (alreadyPushedSku) {
+        if (isSkuAlreadyPushed) {
             refreshSkuActive(dynamicSku)
-            addMultiplier((alreadyPushedSku.multiplier ?? 1) + dynamicMultiplier)
+            addMultiplier((isSkuAlreadyPushed.multiplier ?? 1) + dynamicMultiplier)
 
             return
         }
 
-        const index = dbMap.findIndex(i => i === dynamicSku)
+        const index = skuIds.findIndex(i => i === dynamicSku)
 
         if (index === -1) {
             return
@@ -56,7 +63,7 @@ const useMainCalculation = (): IUseMainCalculation => {
         addMultiplier(dynamicMultiplier)
     }
 
-    const getStepValue = (skuItem: ISku, multiplier = 1): number => {
+    const getStepValue = (skuItem: Sku, multiplier = 1): number => {
         if (!skuItem.steps) {
             return skuItem.count
         }
@@ -68,7 +75,7 @@ const useMainCalculation = (): IUseMainCalculation => {
         return skuItem.steps.stepsData.value[countIndex]
     }
 
-    const addMultiplier = (multiplier:number): void => {
+    const addMultiplier = (multiplier: number): void => {
         const activeSku = skuItems.find(sku => sku.active)
 
         if (!multiplier || !activeSku) {
@@ -84,28 +91,31 @@ const useMainCalculation = (): IUseMainCalculation => {
                     activeSku.count = value
                     break
                 case 'discount':
-                    addDiscount(String(value))
+                    addDiscount(value)
                     break
             }
         }
         activeSku.multiplier = multiplier
-        addDiscount(String(activeSku.discount))
+        addDiscount(activeSku.discount)
     }
 
-    const addDiscount = (discount:TInput, isDiscountForAll = false): void => {
-        if (!discount) {
+    const addDiscount = (discount: number, isDiscountForAll = false, isNeedToRewriteDiscountForAll = false): void => {
+        if (isNaN(discount) || discount > 100) {
             return
         }
 
         if (isDiscountForAll) {
-            discountForAll = parseInt(discount)
+            if (!isNeedToRewriteDiscountForAll) {
+                skuItems.forEach(sku => sku.discount -= discountForAll)
+            }
+            discountForAll = discount
             skuItems.forEach(sku => sku.discount += discountForAll)
         } else {
-            skuItems.forEach(sku => sku.active ? sku.discount = parseInt(discount) + discountForAll : '')
+            skuItems.forEach(sku => sku.active ? sku.discount = discount + discountForAll : '')
         }
 
         skuItems.forEach(sku => {
-            const index = dbMap.findIndex(i => i === sku.id)
+            const index = skuIds.findIndex(i => i === sku.id)
             const count = sku.steps?.method === 'count' ?
                 getStepValue(JSON.parse(JSON.stringify(db[index])), sku.multiplier) :
                 db[index].count

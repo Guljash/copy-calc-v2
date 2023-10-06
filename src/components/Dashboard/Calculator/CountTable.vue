@@ -25,15 +25,13 @@
 
 <script setup lang="ts">
 import {defineProps, withDefaults} from 'vue';
-import ISku from '@/types/ISku'
+import {Sku} from '@/types'
 
-interface IProps {
-  skuItems?: ISku[],
-}
-const props = withDefaults(defineProps<IProps>(), {
+const props = withDefaults(defineProps<{
+  skuItems?: Sku[],
+}>(), {
   skuItems: () => [],
 })
-
 </script>
 
 <style scoped>

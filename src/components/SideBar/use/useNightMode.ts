@@ -1,5 +1,6 @@
 import useMainCalculation from "@/components/Dashboard/Calculator/use/useMainCalculation";
 import {ref} from "vue";
+import {get, set} from "@vueuse/core";
 
 const isNightMode = ref(false)
 
@@ -7,12 +8,11 @@ const useNightMode = () => {
     const {addDiscount, discountForAll} = useMainCalculation()
 
     const toggleNightMode = () => {
-        let nightDiscount = discountForAll
+        set(isNightMode, !get(isNightMode))
 
-        isNightMode.value ? nightDiscount -= 10 : nightDiscount += 10
+        const nightDiscount = get(isNightMode) ? discountForAll - 10 : discountForAll + 10
 
-        addDiscount(String(nightDiscount), true)
-        isNightMode.value = !isNightMode.value
+        addDiscount(nightDiscount, true, true)
     }
 
     return {toggleNightMode, isNightMode}
